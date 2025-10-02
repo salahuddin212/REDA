@@ -1,0 +1,369 @@
+<!-- templates/eda_results.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>r/{{ subreddit }} - Analysis Results</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 2rem 0;
+        }
+        .header {
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+        .subreddit-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 0.25rem;
+        }
+        .subtitle {
+            color: #6c757d;
+            font-size: 0.9375rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+        .stat-label {
+            font-size: 0.8125rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #212529;
+        }
+        .section {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .chart-container {
+            width: 100%;
+            margin: 1rem 0;
+        }
+        .chart-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        .info-value {
+            font-size: 0.875rem;
+            color: #212529;
+            font-weight: 500;
+        }
+        .top-post {
+            padding: 1rem;
+            border-left: 3px solid #0d6efd;
+            background: #f8f9fa;
+            margin-bottom: 0.75rem;
+            border-radius: 0 4px 4px 0;
+        }
+        .top-post-title {
+            font-size: 0.9375rem;
+            color: #212529;
+            margin-bottom: 0.5rem;
+        }
+        .top-post-meta {
+            font-size: 0.8125rem;
+            color: #6c757d;
+        }
+        .word-list {
+            display: grid;
+            gap: 0.5rem;
+        }
+        .word-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .word-label {
+            font-size: 0.875rem;
+            color: #495057;
+            min-width: 100px;
+            font-weight: 500;
+        }
+        .word-bar {
+            height: 24px;
+            background: #0d6efd;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+        .word-count {
+            font-size: 0.8125rem;
+            color: #6c757d;
+            min-width: 40px;
+            text-align: right;
+        }
+        .btn {
+            border: none;
+            border-radius: 6px;
+            padding: 0.625rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            transition: all 0.15s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #5c636a;
+            color: white;
+        }
+        .actions {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .alert {
+            border-radius: 8px;
+            border: 1px solid #f8d7da;
+            background: #f8d7da;
+            color: #842029;
+            padding: 1rem;
+        }
+        @media print {
+            body { background: white; }
+            .btn, .actions { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if error %}
+            <div class="section">
+                <div class="alert">
+                    <strong>Error:</strong> {{ error }}
+                </div>
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <a href="{% url 'subreddit_input' %}" class="btn btn-primary">
+                        Try Another Subreddit
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <!-- Header -->
+            <div class="header">
+                <div class="container">
+                    <h1 class="subreddit-title">r/{{ subreddit }}</h1>
+                    <p class="subtitle">Analysis of {{ basic_stats.total_posts }} posts from {{ basic_stats.date_range_start }} to {{ basic_stats.date_range_end }}</p>
+                </div>
+            </div>
+
+            <!-- Key Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Posts</div>
+                    <div class="stat-value">{{ basic_stats.total_posts }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Score</div>
+                    <div class="stat-value">{{ basic_stats.avg_score|floatformat:1 }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Comments</div>
+                    <div class="stat-value">{{ basic_stats.avg_comments|floatformat:1 }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Title Words</div>
+                    <div class="stat-value">{{ basic_stats.avg_title_length|floatformat:1 }}</div>
+                </div>
+            </div>
+
+            <!-- Activity Info -->
+            <div class="section">
+                <div class="section-title">Activity Patterns</div>
+                <div class="info-row">
+                    <span class="info-label">Most Active Day</span>
+                    <span class="info-value">{{ basic_stats.most_active_day }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Peak Hour</span>
+                    <span class="info-value">{{ basic_stats.most_active_hour }}:00</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Median Score</span>
+                    <span class="info-value">{{ basic_stats.median_score|floatformat:0 }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Median Comments</span>
+                    <span class="info-value">{{ basic_stats.median_comments|floatformat:0 }}</span>
+                </div>
+            </div>
+
+            <!-- Posts by Day of Week -->
+            {% if plots.day_of_week %}
+            <div class="section">
+                <div class="section-title">Posts by Day of Week</div>
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ plots.day_of_week }}" alt="Posts by Day">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Activity Heatmap -->
+            {% if plots.hour_heatmap %}
+            <div class="section">
+                <div class="section-title">Activity Heatmap</div>
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ plots.hour_heatmap }}" alt="Activity Heatmap">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Score Distribution -->
+            {% if plots.score_dist %}
+            <div class="section">
+                <div class="section-title">Score Distribution</div>
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ plots.score_dist }}" alt="Score Distribution">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Comments Distribution -->
+            {% if plots.comments_dist %}
+            <div class="section">
+                <div class="section-title">Comments Distribution</div>
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ plots.comments_dist }}" alt="Comments Distribution">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Posts Over Time -->
+            {% if plots.posts_over_time %}
+            <div class="section">
+                <div class="section-title">Posts Over Time</div>
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ plots.posts_over_time }}" alt="Posts Over Time">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Word Cloud -->
+            {% if plots.wordcloud %}
+            <div class="section">
+                <div class="section-title">Word Cloud</div>
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ plots.wordcloud }}" alt="Word Cloud">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Most Common Words -->
+            {% if word_frequency %}
+            <div class="section">
+                <div class="section-title">Most Common Words</div>
+                <div class="word-list">
+                    {% for word, count in word_frequency %}
+                        <div class="word-item">
+                            <span class="word-label">{{ word }}</span>
+                            <div class="word-bar" data-count="{{ count }}" style="width: 0%;"></div>
+                            <span class="word-count">{{ count }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Top Posts -->
+            <div class="section">
+                <div class="section-title">Top 5 Posts</div>
+                {% for post in basic_stats.top_posts %}
+                    <div class="top-post">
+                        <div class="top-post-title">{{ post.title|truncatechars:120 }}</div>
+                        <div class="top-post-meta">
+                            {{ post.score|floatformat:0 }} upvotes • {{ post.num_comments|floatformat:0 }} comments
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <a href="{% url 'subreddit_input' %}" class="btn btn-primary">
+                    Analyze Another Subreddit
+                </a>
+                <button onclick="window.print()" class="btn btn-secondary">
+                    Print Report
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Animate word frequency bars
+        document.addEventListener('DOMContentLoaded', function() {
+            const bars = document.querySelectorAll('.word-bar');
+            if (bars.length === 0) return;
+            
+            const counts = Array.from(bars).map(bar => parseInt(bar.getAttribute('data-count')));
+            const maxCount = Math.max(...counts);
+            
+            setTimeout(() => {
+                bars.forEach((bar, index) => {
+                    const count = parseInt(bar.getAttribute('data-count'));
+                    const width = (count / maxCount) * 100;
+                    bar.style.width = width + '%';
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>
