@@ -22,6 +22,10 @@ from wordcloud import WordCloud
 import time
 import logging
 import praw
+import nltk
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -158,6 +162,7 @@ def fetch_reddit_data_praw(subreddit_name, limit=500):
         return None, f"Error fetching data: {str(e)}"
 
 
+
 def generate_plots(df, subreddit_name):
     """Generate all plots for EDA"""
     plots = {}
@@ -171,6 +176,7 @@ def generate_plots(df, subreddit_name):
             'axes.titlesize': 12,
             'axes.labelsize': 10
         })
+        
         
         # 1. Posts per day of week
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -195,6 +201,8 @@ def generate_plots(df, subreddit_name):
         plots['day_of_week'] = plot_to_base64(fig)
         plt.close()
         
+        
+        
         # 2. Posts per hour heatmap
         fig, ax = plt.subplots(figsize=(12, 8))
         hour_day = df.groupby(['day_of_week', 'hour']).size().unstack(fill_value=0)
@@ -208,6 +216,7 @@ def generate_plots(df, subreddit_name):
         plt.tight_layout()
         plots['hour_heatmap'] = plot_to_base64(fig)
         plt.close()
+        
         
         # 3. Score distribution
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -224,6 +233,8 @@ def generate_plots(df, subreddit_name):
         plots['score_dist'] = plot_to_base64(fig)
         plt.close()
         
+        
+        
         # 4. Comments distribution
         fig, ax = plt.subplots(figsize=(10, 6))
         comments = df['num_comments'][df['num_comments'] >= 0]
@@ -233,12 +244,14 @@ def generate_plots(df, subreddit_name):
         ax.set_ylabel('Frequency')
         mean_comments = comments.mean()
         ax.axvline(mean_comments, color='red', linestyle='--', linewidth=2,
-                   label=f'Mean: {mean_comments:.1f}')
+                    label=f'Mean: {mean_comments:.1f}')
         ax.legend()
         ax.grid(True, alpha=0.3)
         plt.tight_layout()
         plots['comments_dist'] = plot_to_base64(fig)
         plt.close()
+        
+        
         
         # 5. Posts over time
         fig, ax = plt.subplots(figsize=(12, 6))
@@ -253,6 +266,8 @@ def generate_plots(df, subreddit_name):
         plt.tight_layout()
         plots['posts_over_time'] = plot_to_base64(fig)
         plt.close()
+        
+        
         
         # 6. Word Cloud
         try:
@@ -298,6 +313,30 @@ def generate_plots(df, subreddit_name):
             print(f"Error generating wordcloud: {e}")
             plots['wordcloud'] = None
         
+        nltk.download('vader_lexicon')
+        # 7. Sentiment Analysis
+        try:
+            from nltk.sentiment import SentimentIntensityAnalyzer
+            sia = SentimentIntensityAnalyzer()
+            df['title_sentiment'] = df['title'].apply(lambda x: sia.polarity_scores(str(x))['compound'])
+            df['body_sentiment'] = df['selftext'].apply(lambda x: sia.polarity_scores(str(x))['compound'] if pd.notna(x) and str(x).strip() else 0)
+            df['sentiment'] = (df['title_sentiment'] + df['body_sentiment']) / 2
+        
+            fig, ax= plt.subplots(figsize=(12,6))
+            ax.hist(df['sentiment'], bins=30, color='skyblue', edgecolor='black')
+            ax.axvline(df['sentiment'].mean(), color='red', linestyle='--', label=f'Mean: {df["sentiment"].mean():.3f}')
+            ax.set_title(f'Sentiment Analysis - r/{subreddit_name}', fontsize=14, fontweight='bold', pad=20)
+            
+            ax.set_xlabel('Sentiment Score')
+            ax.set_ylabel('Number of Posts')
+            plt.tight_layout()
+            plots['sentiment_analysis'] = plot_to_base64(fig)
+            plt.close()
+        except Exception as e:
+            print(f'Error generating sentiment analysis graph: {e}')
+            plots['sentiment'] = None
+        
+        
     except Exception as e:
         logger.error(f"Error generating plots: {e}")
         print(f"Error generating plots: {e}")
@@ -334,7 +373,9 @@ def calculate_basic_stats(df):
             'avg_title_length': float(df['title_words'].mean()),
             'most_active_day': df['day_of_week'].mode().iloc[0] if not df['day_of_week'].mode().empty else 'N/A',
             'most_active_hour': int(df['hour'].mode().iloc[0]) if not df['hour'].mode().empty else 0,
-            'top_posts': df.nlargest(5, 'score')[['title', 'score', 'num_comments']].to_dict('records')
+            'top_posts': df.nlargest(5, 'score')[['title', 'score', 'num_comments']].to_dict('records'),
+            'avg_sentiment': float(df['sentiment'].mean()),
+            'median_sentiment': float(df['sentiment'].median()),
         }
         return stats
     except Exception as e:
@@ -350,7 +391,9 @@ def calculate_basic_stats(df):
             'avg_title_length': 0,
             'most_active_day': 'N/A',
             'most_active_hour': 0,
-            'top_posts': []
+            'top_posts': [],
+            'avg_sentiment': 0,
+            'median_sentiment':0
         }
 
 
@@ -364,7 +407,8 @@ def get_word_frequency(df, top_n=20):
         
         # Remove common words and punctuation
         import string
-        common_words = {
+        nltk_stopwords = set(stopwords.words('english'))
+        my_common_words = {
             'reddit', 'post', 'posts', 'comment', 'comments', 'sub', 'subreddit', 
             'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 
             'by', 'a', 'an', 'as', 'are', 'was', 'were', 'been', 'be', 'have', 'has', 
@@ -376,16 +420,21 @@ def get_word_frequency(df, top_n=20):
             'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
             'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'just', 'now'
         }
+        combined_stopwords = nltk_stopwords.union(my_common_words)
+
         
         # Clean and split text
         words = all_titles.translate(str.maketrans('', '', string.punctuation)).split()
-        words = [word.strip() for word in words if word.strip() not in common_words and len(word.strip()) > 2]
+        words = [word.strip() for word in words if word.strip() not in combined_stopwords and len(word.strip()) > 2]
         
         word_freq = Counter(words).most_common(top_n)
         return word_freq
     except Exception as e:
         logger.error(f"Error calculating word frequency: {e}")
         return []
+
+
+
 
 
 def eda_results_view(request, subreddit):

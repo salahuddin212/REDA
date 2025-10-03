@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>r/{{ subreddit }} - Analysis Results</title>
+    <title>REDA - r/{{ subreddit }} Analysis</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
@@ -13,62 +13,90 @@
             box-sizing: border-box;
         }
         body {
-            background-color: #f8f9fa;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             padding: 2rem 0;
         }
         .header {
-            background: white;
-            border-bottom: 1px solid #dee2e6;
-            padding: 1.5rem 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem 0;
             margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: 1.5px;
+            margin-bottom: 0.5rem;
         }
         .subreddit-title {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: #212529;
-            margin-bottom: 0.25rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
         }
         .subtitle {
-            color: #6c757d;
-            font-size: 0.9375rem;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem;
+        }
+        .container {
+            max-width: 1200px;
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
             margin-bottom: 2rem;
         }
         .stat-card {
             background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1.25rem;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #667eea;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         }
         .stat-label {
             font-size: 0.8125rem;
-            color: #6c757d;
-            margin-bottom: 0.25rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .stat-value {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: #212529;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
         }
         .section {
             background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1.5rem;
+            border-radius: 12px;
+            padding: 2rem;
             margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .section-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #212529;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #dee2e6;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .section-title-icon {
+            color: #667eea;
+            margin-right: 0.5rem;
         }
         .chart-container {
             width: 100%;
@@ -77,12 +105,12 @@
         .chart-container img {
             width: 100%;
             height: auto;
-            border-radius: 4px;
+            border-radius: 8px;
         }
         .info-row {
             display: flex;
             justify-content: space-between;
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
             border-bottom: 1px solid #f1f3f5;
         }
         .info-row:last-child {
@@ -90,92 +118,154 @@
         }
         .info-label {
             font-size: 0.875rem;
-            color: #6c757d;
+            color: #718096;
+            font-weight: 500;
         }
         .info-value {
             font-size: 0.875rem;
-            color: #212529;
-            font-weight: 500;
+            color: #2d3748;
+            font-weight: 600;
         }
         .top-post {
-            padding: 1rem;
-            border-left: 3px solid #0d6efd;
-            background: #f8f9fa;
-            margin-bottom: 0.75rem;
-            border-radius: 0 4px 4px 0;
+            padding: 1.25rem;
+            border-left: 4px solid #667eea;
+            background: linear-gradient(90deg, #f7fafc 0%, #ffffff 100%);
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+            transition: all 0.2s;
+        }
+        .top-post:hover {
+            background: linear-gradient(90deg, #edf2f7 0%, #f7fafc 100%);
+            transform: translateX(4px);
         }
         .top-post-title {
             font-size: 0.9375rem;
-            color: #212529;
-            margin-bottom: 0.5rem;
+            color: #2d3748;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
         }
         .top-post-meta {
             font-size: 0.8125rem;
-            color: #6c757d;
+            color: #718096;
+        }
+        .post-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        .badge-score {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .badge-comments {
+            background: #bee3f8;
+            color: #2c5282;
         }
         .word-list {
             display: grid;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
         .word-item {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
         }
         .word-label {
             font-size: 0.875rem;
-            color: #495057;
-            min-width: 100px;
-            font-weight: 500;
+            color: #2d3748;
+            min-width: 120px;
+            font-weight: 600;
+        }
+        .word-bar-container {
+            flex: 1;
+            background: #f7fafc;
+            border-radius: 6px;
+            height: 28px;
+            position: relative;
+            overflow: hidden;
         }
         .word-bar {
-            height: 24px;
-            background: #0d6efd;
-            border-radius: 4px;
-            transition: width 0.6s ease;
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            transition: width 0.8s ease;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
         }
         .word-count {
             font-size: 0.8125rem;
-            color: #6c757d;
-            min-width: 40px;
+            color: #718096;
+            min-width: 50px;
             text-align: right;
+            font-weight: 600;
         }
         .btn {
             border: none;
-            border-radius: 6px;
-            padding: 0.625rem 1.25rem;
-            font-weight: 500;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
             font-size: 0.9375rem;
-            transition: all 0.15s;
+            transition: all 0.3s;
             text-decoration: none;
             display: inline-block;
         }
         .btn-primary {
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
             color: white;
         }
         .btn-secondary {
-            background-color: #6c757d;
-            color: white;
+            background: #e2e8f0;
+            color: #2d3748;
         }
         .btn-secondary:hover {
-            background-color: #5c636a;
-            color: white;
+            background: #cbd5e0;
+            color: #2d3748;
+            transform: translateY(-2px);
         }
         .actions {
             text-align: center;
             padding: 2rem 0;
         }
         .alert {
+            border-radius: 12px;
+            border: none;
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .alert-title {
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+        .sentiment-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
             border-radius: 8px;
-            border: 1px solid #f8d7da;
-            background: #f8d7da;
-            color: #842029;
-            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        .sentiment-positive {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .sentiment-neutral {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .sentiment-negative {
+            background: #fed7d7;
+            color: #742a2a;
         }
         @media print {
             body { background: white; }
@@ -184,11 +274,12 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        {% if error %}
+    {% if error %}
+        <div class="container">
             <div class="section">
                 <div class="alert">
-                    <strong>Error:</strong> {{ error }}
+                    <div class="alert-title">Analysis Failed</div>
+                    <p class="mb-0">{{ error }}</p>
                 </div>
                 <div style="text-align: center; margin-top: 1.5rem;">
                     <a href="{% url 'subreddit_input' %}" class="btn btn-primary">
@@ -196,15 +287,18 @@
                     </a>
                 </div>
             </div>
-        {% else %}
-            <!-- Header -->
-            <div class="header">
-                <div class="container">
-                    <h1 class="subreddit-title">r/{{ subreddit }}</h1>
-                    <p class="subtitle">Analysis of {{ basic_stats.total_posts }} posts from {{ basic_stats.date_range_start }} to {{ basic_stats.date_range_end }}</p>
-                </div>
+        </div>
+    {% else %}
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">REDA</div>
+                <h1 class="subreddit-title">r/{{ subreddit }}</h1>
+                <p class="subtitle">Analysis of {{ basic_stats.total_posts }} posts from {{ basic_stats.date_range_start }} to {{ basic_stats.date_range_end }}</p>
             </div>
+        </div>
 
+        <div class="container">
             <!-- Key Statistics -->
             <div class="stats-grid">
                 <div class="stat-card">
@@ -296,6 +390,20 @@
             </div>
             {% endif %}
 
+            <!-- Sentiment Analysis -->
+            {% if plots.sentiment_analysis %}
+            <div class="section">
+                <div class="section-title">Sentiment Analysis</div>
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ plots.sentiment_analysis }}" alt="Sentiment Analysis">
+                </div>
+                <p style="font-size: 0.875rem; color: #718096; margin-top: 1rem;">
+                    Sentiment scores range from -1 (very negative) to +1 (very positive). 
+                    This analysis combines title and body text sentiment.
+                </p>
+            </div>
+            {% endif %}
+
             <!-- Word Cloud -->
             {% if plots.wordcloud %}
             <div class="section">
@@ -314,7 +422,9 @@
                     {% for word, count in word_frequency %}
                         <div class="word-item">
                             <span class="word-label">{{ word }}</span>
-                            <div class="word-bar" data-count="{{ count }}" style="width: 0%;"></div>
+                            <div class="word-bar-container">
+                                <div class="word-bar" data-count="{{ count }}" style="width: 0%;"></div>
+                            </div>
                             <span class="word-count">{{ count }}</span>
                         </div>
                     {% endfor %}
@@ -327,9 +437,10 @@
                 <div class="section-title">Top 5 Posts</div>
                 {% for post in basic_stats.top_posts %}
                     <div class="top-post">
-                        <div class="top-post-title">{{ post.title|truncatechars:120 }}</div>
+                        <div class="top-post-title">{{ forloop.counter }}. {{ post.title|truncatechars:120 }}</div>
                         <div class="top-post-meta">
-                            {{ post.score|floatformat:0 }} upvotes • {{ post.num_comments|floatformat:0 }} comments
+                            <span class="post-badge badge-score">{{ post.score|floatformat:0 }} upvotes</span>
+                            <span class="post-badge badge-comments">{{ post.num_comments|floatformat:0 }} comments</span>
                         </div>
                     </div>
                 {% endfor %}
@@ -344,8 +455,8 @@
                     Print Report
                 </button>
             </div>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 
     <script>
         // Animate word frequency bars
@@ -362,7 +473,7 @@
                     const width = (count / maxCount) * 100;
                     bar.style.width = width + '%';
                 });
-            }, 100);
+            }, 300);
         });
     </script>
 </body>
