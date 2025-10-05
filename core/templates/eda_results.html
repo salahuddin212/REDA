@@ -267,6 +267,48 @@
             background: #fed7d7;
             color: #742a2a;
         }
+        .sentiment-breakdown {
+            padding: 1rem;
+        }
+        .sentiment-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .sentiment-label {
+            min-width: 80px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .sentiment-bar-bg {
+            flex: 1;
+            height: 32px;
+            background: #f7fafc;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .sentiment-bar {
+            height: 100%;
+            transition: width 0.8s ease;
+        }
+        .sentiment-bar-positive {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+        }
+        .sentiment-bar-neutral {
+            background: linear-gradient(90deg, #90cdf4, #4299e1);
+        }
+        .sentiment-bar-negative {
+            background: linear-gradient(90deg, #fc8181, #f56565);
+        }
+        .sentiment-percent {
+            min-width: 50px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #2d3748;
+        }
         @media print {
             body { background: white; }
             .btn, .actions { display: none; }
@@ -314,8 +356,50 @@
                     <div class="stat-value">{{ basic_stats.avg_comments|floatformat:1 }}</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Avg Title Words</div>
-                    <div class="stat-value">{{ basic_stats.avg_title_length|floatformat:1 }}</div>
+                    <div class="stat-label">Avg Sentiment</div>
+                    <div class="stat-value">{{ basic_stats.avg_sentiment|floatformat:3 }}</div>
+                </div>
+            </div>
+
+            <!-- Sentiment Overview -->
+            <div class="section">
+                <div class="section-title">Sentiment Overview</div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="info-row">
+                            <span class="info-label">Average Sentiment</span>
+                            <span class="info-value">{{ basic_stats.avg_sentiment|floatformat:3 }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Median Sentiment</span>
+                            <span class="info-value">{{ basic_stats.median_sentiment|floatformat:3 }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="sentiment-breakdown">
+                            <div class="sentiment-item">
+                                <span class="sentiment-label">Positive</span>
+                                <div class="sentiment-bar-bg">
+                                    <div class="sentiment-bar sentiment-bar-positive" style="width: {{ basic_stats.positive_percent }}%"></div>
+                                </div>
+                                <span class="sentiment-percent">{{ basic_stats.positive_percent }}%</span>
+                            </div>
+                            <div class="sentiment-item">
+                                <span class="sentiment-label">Neutral</span>
+                                <div class="sentiment-bar-bg">
+                                    <div class="sentiment-bar sentiment-bar-neutral" style="width: {{ basic_stats.neutral_percent }}%"></div>
+                                </div>
+                                <span class="sentiment-percent">{{ basic_stats.neutral_percent }}%</span>
+                            </div>
+                            <div class="sentiment-item">
+                                <span class="sentiment-label">Negative</span>
+                                <div class="sentiment-bar-bg">
+                                    <div class="sentiment-bar sentiment-bar-negative" style="width: {{ basic_stats.negative_percent }}%"></div>
+                                </div>
+                                <span class="sentiment-percent">{{ basic_stats.negative_percent }}%</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
