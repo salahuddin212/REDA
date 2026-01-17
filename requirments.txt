@@ -7,6 +7,6 @@ wordcloud>=1.9.0
 requests>=2.28.0
 praw>=7.7.0
 # For wordcloud on Windows: 
-python-dev-tools
+# python-dev-tools
 nltk
 dotenv
