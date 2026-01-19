@@ -176,11 +176,12 @@
                 {% endif %}
 
                 <div class="info-box">
-                    <div class="info-box-title">⏱️ Processing Time Notice</div>
+                    <div class="info-box-title">🔑 API Credentials & Processing Time</div>
                     <div class="info-box-text">
-                        Analysis may take 1-3 minutes depending on the number of posts. 
-                        We fetch data, perform sentiment analysis, and generate visualizations.
-                        Please be patient!
+                        Analysis may take 1-3 minutes.
+                        <br>
+                        <strong>Note:</strong> You need to provide your own Reddit API credentials. They are stored temporarily in your session.
+                        <a href="https://www.reddit.com/prefs/apps" target="_blank" style="color: #667eea; text-decoration: none;">Get them here &rarr;</a>
                     </div>
                 </div>
                 
@@ -215,6 +216,40 @@
                         {% if form.posts_limit.errors %}
                             <div class="text-danger small mt-1">
                                 {% for error in form.posts_limit.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.client_id.id_for_label }}" class="form-label">
+                            Client ID
+                        </label>
+                        {{ form.client_id }}
+                        {% if form.client_id.help_text %}
+                            <div class="form-text">{{ form.client_id.help_text }}</div>
+                        {% endif %}
+                        {% if form.client_id.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.client_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.client_secret.id_for_label }}" class="form-label">
+                            Client Secret
+                        </label>
+                        {{ form.client_secret }}
+                        {% if form.client_secret.help_text %}
+                            <div class="form-text">{{ form.client_secret.help_text }}</div>
+                        {% endif %}
+                        {% if form.client_secret.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.client_secret.errors %}
                                     {{ error }}
                                 {% endfor %}
                             </div>
